@@ -1,9 +1,9 @@
-version: '3.3'
+version: '3.9'
 
 services:
   traefik:
     image: traefik:v2.9
-    container_name: my_traefik
+    container_name: traefik
     command:
       - --providers.docker=true
       # Define Traefik entry points to port [80] for http and port [443] for https.
@@ -28,7 +28,7 @@ services:
 
   whoami:
     image: traefik/whoami:latest
-    container_name: my_whoami
+    container_name: whoami
     networks:
       - web
     labels:
@@ -37,7 +37,7 @@ services:
       # Enable https
       - "traefik.http.routers.whoami.tls=true"
       # Define www and non-www host
-      - "traefik.http.routers.whoami.rule=Host(`mywhoami.docker.localdev`) || Host(`www.mywhoami.docker.localdev`)"
+      - "traefik.http.routers.whoami.rule=Host(`mywhoami.com`) || Host(`www.mywhoami.com`)"
       # Add redirect middlewares for http and https
       - "traefik.http.routers.whoami.middlewares=redirect-http-www@file,redirect-https-www@file"
 
