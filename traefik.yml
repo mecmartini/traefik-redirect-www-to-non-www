@@ -1,0 +1,48 @@
+version: '3.3'
+
+services:
+  traefik:
+    image: traefik:v2.9
+    container_name: my_traefik
+    command:
+      - --providers.docker=true
+      # Define Traefik entry points to port [80] for http and port [443] for https.
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # Setup dynamic configuration directory
+      - --providers.file.directory=/traefik/traefik.d
+    restart: always
+    networks:
+      # Define the network on which traefik is going to operate.
+      - web
+    ports:
+      # Open traefik http [80] and https [443] ports.
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount the dynamic configuration directory
+      - ./traefik.d:/traefik/traefik.d
+    labels:
+      - "traefik.enable=true"
+
+  whoami:
+    image: traefik/whoami:latest
+    container_name: my_whoami
+    networks:
+      - web
+    labels:
+      # Define traefik network to use
+      - "traefik.docker.network=web"
+      # Enable https
+      - "traefik.http.routers.whoami.tls=true"
+      # Define www and non-www host
+      - "traefik.http.routers.whoami.rule=Host(`mywhoami.docker.localdev`) || Host(`www.mywhoami.docker.localdev`)"
+      # Add redirect middlewares for http and https
+      - "traefik.http.routers.whoami.middlewares=redirect-http-www@file,redirect-https-www@file"
+
+networks:
+  # Define the network on which is going to operate Traefik.
+  web:
+    external: true
+
